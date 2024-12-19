@@ -1,7 +1,7 @@
 package game.utils;
 
 import javax.swing.*;
-
+import java.util.concurrent.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.util.HashSet;
@@ -32,8 +32,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private boolean gameStarted = false;
     private boolean gameOver = false;
     private boolean ghostFrightening = false;
-    final private int FRIGHTENED_INTERVAL = 60;
-    private int frigtenedTimer = 0;
+    private final static int FRIGHTENED_INTERVAL = 3000;// 3000 milliseconds
     private int currentFrame = 0;
 
     private Color wallColor = new Color(0x1fbbf7, false);
@@ -70,7 +69,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     public GamePanel() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
-        setBackground(Color.WHITE);
+        setBackground(Color.BLACK);
         addKeyListener(this);
         setFocusable(true);
         // load images
@@ -80,8 +79,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         food = new HashSet<Block>();
         ghosts = new HashSet<Ghost>();
         frightFruits = new HashSet<FrightFruit>();
-        generateRandomly('g', 5);
-        generateRandomly('f', 3);
+        generateGhost('g', 5, ghosts);
+        generateFrightFruit('f', 3, frightFruits);
         loadMap();
         for (Block ghost : ghosts) {
             int newDirection = directions[random.nextInt(4)];
@@ -144,17 +143,15 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     public void loadMap() {
         // if game is just over, then clear all the ghosts in the tileMap
         if (gameOver) {
-            for (Block ghost : ghosts) {
+            for (Ghost ghost : ghosts) {
                 tileMap[ghost.startY / tileSize][ghost.startX / tileSize] = 'b';
                 System.out.println("Deleted ghost");
             }
+            for (FrightFruit frightFruit : frightFruits) {
+                tileMap[frightFruit.startY / tileSize][frightFruit.startX / tileSize] = 'b';
+                System.out.println("Deleted frightfruit");
+            }
         }
-        // clear old elements
-        walls.clear();
-        food.clear();
-        ghosts.clear();
-        frightFruits.clear();
-        // System.out.println("Game State:" + gameOver);
 
         for (int row = 0; row < tileMap.length; row++) {
             for (int col = 0; col < tileMap.length; col++) {
@@ -172,16 +169,17 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                         food.add(bean);
                         break;
                     // 添加FrightFruit
-                    case 'f':
-                        FrightFruit frightFruit = new FrightFruit(FrightFruit, x, y, tileSize, tileSize);
-                        frightFruits.add(frightFruit);
-                        break;
-                    case 'g':
-                        Ghost ghost = new Ghost(ghostFrames[0], x, y, tileSize, tileSize);
-                        ghosts.add(ghost);
-                        Block beanG = new PacMan(null, x + 14, y + 14, 4, 4);
-                        food.add(beanG);
-                        break;
+                    // case 'f':
+                    // FrightFruit frightFruit = new FrightFruit(FrightFruit, x, y, tileSize,
+                    // tileSize);
+                    // frightFruits.add(frightFruit);
+                    // break;
+                    // case 'g':
+                    // Ghost ghost = new Ghost(ghostFrames[0], x, y, tileSize, tileSize);
+                    // ghosts.add(ghost);
+                    // Block beanG = new PacMan(null, x + 14, y + 14, 4, 4);
+                    // food.add(beanG);
+                    // break;
                     case 'p':
                         pacman = new PacMan(pacManFrames[12], x, y, tileSize, tileSize);
                         break;
@@ -195,6 +193,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         if (gameStarted) {
             drawElements(g);
             drawLives(g);
+            if (ghostFrightening) {
+                drawFrightenedHint(g);
+            }
         }
         drawMap(g);
         if (!gameStarted) {
@@ -212,15 +213,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         for (Block bean : food) {
             g.fillOval(bean.x, bean.y, bean.width, bean.height);
         }
-
-        for (Ghost ghost : ghosts) {
-            g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
-        }
-
         for (FrightFruit frightFruit : frightFruits) {
             g.drawImage(frightFruit.image, frightFruit.x, frightFruit.y, frightFruit.width, frightFruit.height, null);
         }
-
+        for (Ghost ghost : ghosts) {
+            g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
+        }
         // display score
         g.setFont(new Font("Arial", Font.BOLD, 20));
         g.setColor(fontColor);
@@ -270,7 +268,30 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     }
 
-    public void generateRandomly(char componentType, int num) {
+    public void drawFrightenedHint(Graphics g) {
+        int remainTime = 3 - (int) (System.currentTimeMillis() - pacman.frighteningStartTime) / 1000;
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 14));
+        String frightenedHint = "GHOST FRIGHTENED! TIME REMAIN: ";
+        g.drawString(frightenedHint + String.valueOf(remainTime) + " s", 120, tileSize - 10);
+    }
+
+    public void generateGhost(char componentType, int num, HashSet<Ghost> ghosts) {
+        int counter = 0;
+        while (counter < num) {
+            int x = random.nextInt(columnCount);
+            int y = random.nextInt(rowCount);
+            if (tileMap[y][x] != 'x' && tileMap[y][x] != 'p' && tileMap[y][x] != 'g' && tileMap[y][x] != 'f') {
+                counter++;
+                tileMap[y][x] = componentType;
+                System.out.println("Create componnet at tileMap[" + y + "][" + x + ']');
+                Ghost ghost = new Ghost(ghostFrames[0], x * tileSize, y * tileSize, tileSize, tileSize);
+                ghosts.add(ghost);
+            }
+        }
+    }
+
+    public void generateFrightFruit(char componentType, int num, HashSet<FrightFruit> frightFruits) {
         int counter = 0;
         while (counter < num) {
             int x = random.nextInt(17);
@@ -279,6 +300,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 counter++;
                 tileMap[y][x] = componentType;
                 System.out.println("Create componnet at tileMap[" + y + "][" + x + ']');
+                FrightFruit frightFruit = new FrightFruit(FrightFruit, x * tileSize, y * tileSize, tileSize, tileSize);
+                frightFruits.add(frightFruit);
             }
         }
 
@@ -304,14 +327,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             if (pacman.eatFrightFruit(frightFruit)) {
                 frightFruitEaten = frightFruit;
                 ghostFrightening = true;
-                frigtenedTimer = FRIGHTENED_INTERVAL;
                 break;
             }
         }
         frightFruits.remove(frightFruitEaten);
         // if frightFruit all eaten, randomly generate a new one
         if (frightFruits.isEmpty()) {
-            generateRandomly('f', 1);
+            generateFrightFruit('f', 1, frightFruits);
         }
 
         Ghost exterminatedGhost = null;
@@ -347,10 +369,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 pacman.flashFrame = 0;
         }
         if (ghostFrightening) {
-            frigtenedTimer--;
-            if (frigtenedTimer == 0) {
+            if (System.currentTimeMillis() - pacman.frighteningStartTime > FRIGHTENED_INTERVAL) {
                 ghostFrightening = false;
+                pacman.frighteningStartTime = 0;
             }
+
         }
 
         // update pacMan animation frame
@@ -380,6 +403,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
         if (gameOver) {
             gameLoop.stop();
+
         }
     }
 
@@ -404,8 +428,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
 
         if (gameOver && e.getKeyCode() == KeyEvent.VK_ENTER) {
-            generateRandomly('g', 5);
-            generateRandomly('f', 3);
+            ghosts.clear();
+            frightFruits.clear();
+            generateGhost('g', 5, ghosts);
+            generateFrightFruit('f', 5, frightFruits);
             loadMap();
 
             pacman.resetPositions();
