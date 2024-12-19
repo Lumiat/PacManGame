@@ -18,8 +18,8 @@ public class Block {
     protected int velocityY = 0;
 
     protected int currentAnimationFrame = 0;
-    public static final int tileSize = 35;
-    public static final int VELOCITY = tileSize / 6;
+    public static final int tileSize = 32;
+    protected int VELOCITY = tileSize / 8;
 
     Block(Image image, int x, int y, int width, int height) {
         this.image = image;
@@ -35,16 +35,28 @@ public class Block {
         int prevDirection = this.direction;
         this.direction = direction;
         updateVelocity();
-        this.currentAnimationFrame = 0;
-        this.x += this.velocityX;
-        this.y += this.velocityY;
+
+        // 计算新的位置
+        int newX = this.x + this.velocityX;
+        int newY = this.y + this.velocityY;
+
+        // 如果没有碰撞，更新位置
+        boolean canMove = true;
         for (Block wall : walls) {
-            if (collision(this, wall)) {
-                this.x -= this.velocityX;
-                this.y -= this.velocityY;
-                this.direction = prevDirection;
-                updateVelocity();
+            if (collision(new Block(null, newX, newY, this.width, this.height), wall)) {
+                canMove = false;
+                break;
             }
+        }
+
+        // 如果没有碰撞，更新位置
+        if (canMove) {
+            this.x = newX;
+            this.y = newY;
+        } else {
+            // 如果有碰撞，恢复到原来的位置，方向不改变
+            this.direction = prevDirection;
+            updateVelocity();
         }
     }
 
@@ -85,13 +97,6 @@ public class Block {
     }
 
     public boolean collision(Block a, Block b) {
-        // if (a.x < b.x + b.width &&
-        // a.x + a.width > b.x &&
-        // a.y < b.y + b.height &&
-        // a.y + a.height > b.y) {
-        // System.out.println("wall x: " + b.x + "wall y: " + b.y);
-        // System.out.println("pacman x: " + a.x + "pacman y: " + a.y);
-        // }
         return a.x < b.x + b.width &&
                 a.x + a.width > b.x &&
                 a.y < b.y + b.height &&

@@ -10,7 +10,6 @@ public class Ghost extends Block {
 
     Ghost(Image image, int x, int y, int width, int height) {
         super(image, x, y, width, height);
-
     }
 
     // input the walls set
