@@ -14,6 +14,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private int boardWidth = columnCount * tileSize;
     private int boardHeight = rowCount * tileSize;
 
+    // resources related variables
     private Image frontCover;
     private Image FrightFruit;
 
@@ -22,6 +23,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private HashSet<FrightFruit> frightFruits;
     private HashSet<Ghost> ghosts;
     private PacMan pacman;
+
     // game related variables
     private Timer gameLoop;
     private int[] directions = { 0, 1, 2, 3 };// move directions , 0--U, 1--D, 2--L, 3--R
@@ -30,7 +32,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private boolean gameStarted = false;
     private boolean gameOver = false;
     private boolean ghostFrightening = false;
-
+    final private int FRIGHTENED_INTERVAL = 60;
+    private int frigtenedTimer = 0;
     private int currentFrame = 0;
 
     private Color wallColor = new Color(0x1fbbf7, false);
@@ -301,6 +304,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             if (pacman.eatFrightFruit(frightFruit)) {
                 frightFruitEaten = frightFruit;
                 ghostFrightening = true;
+                frigtenedTimer = FRIGHTENED_INTERVAL;
                 break;
             }
         }
@@ -310,15 +314,24 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             generateRandomly('f', 1);
         }
 
+        Ghost exterminatedGhost = null;
         for (Ghost ghost : ghosts) {
             ghost.move(); // Ghost moves
             ghost.collideWithWall(walls); // Check collision with walls
-            pacman.collideWithGhost(ghost); // Check pacman collision with ghosts
-            if (pacman.lives == 0) {
-                gameOver = true;
-                return;
+            if (ghostFrightening) {
+                if (pacman.exterminateGhost(ghost)) {
+                    exterminatedGhost = ghost;
+                    break;
+                }
+            } else {
+                pacman.collideWithGhost(ghost); // Check pacman collision with ghosts
+                if (pacman.lives == 0) {
+                    gameOver = true;
+                    return;
+                }
             }
         }
+        ghosts.remove(exterminatedGhost);
     }
 
     @Override
@@ -332,6 +345,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             pacman.flashFrame++;
             if (pacman.flashFrame > pacman.FLASH_INTERVAL)
                 pacman.flashFrame = 0;
+        }
+        if (ghostFrightening) {
+            frigtenedTimer--;
+            if (frigtenedTimer == 0) {
+                ghostFrightening = false;
+            }
         }
 
         // update pacMan animation frame

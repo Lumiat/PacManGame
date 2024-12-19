@@ -39,15 +39,18 @@ public class PacMan extends Block {
         return false;
     }
 
-    public void collideWithGhost(Block ghost) {
+    public boolean exterminateGhost(Ghost ghost) {
+        if (collision(this, ghost)) {
+            return true;
+        }
+        return false;
+    }
+
+    public void collideWithGhost(Ghost ghost) {
         if (collision(ghost, this) && invincibleTimer == 0) {
             lives -= 1;
             invincibleTimer = INVINCIBLE_DURATION;
             isInvincible = true;
-            // if (lives == 0) {
-            // gameOver = true;
-            // return;
-            // }
         }
     }
 
