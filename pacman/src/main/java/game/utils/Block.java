@@ -76,7 +76,7 @@ public class Block {
         this.x = this.startX;
         this.y = this.startY;
         this.direction = 3;
-        updateVelocity();
+        // updateVelocity();
     }
 
     public void move() {
@@ -85,6 +85,13 @@ public class Block {
     }
 
     public boolean collision(Block a, Block b) {
+        // if (a.x < b.x + b.width &&
+        // a.x + a.width > b.x &&
+        // a.y < b.y + b.height &&
+        // a.y + a.height > b.y) {
+        // System.out.println("wall x: " + b.x + "wall y: " + b.y);
+        // System.out.println("pacman x: " + a.x + "pacman y: " + a.y);
+        // }
         return a.x < b.x + b.width &&
                 a.x + a.width > b.x &&
                 a.y < b.y + b.height &&
@@ -95,6 +102,11 @@ public class Block {
         if (collision(this, wall)) {
             x -= velocityX;
             y -= velocityY;
+            System.out.println("happend at x:" + this.x + " y:" + this.y + "block attribute: height" + this.height
+                    + ",width" + this.width);
+            System.out.println("wall x: " + wall.x + " wall y: " + wall.y + "block attribute: height" + wall.height
+                    + ",width" + wall.width);
         }
     }
+
 }
