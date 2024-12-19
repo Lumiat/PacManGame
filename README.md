@@ -8,9 +8,17 @@ PacMan
 │  │  │  ├─ 📁java
 │  │  │  │  └─ 📁game
 │  │  │  │     └─ 📁utils
+│  │  │  │        ├─ 📄App.class
+│  │  │  │        ├─ 📄App.java
+│  │  │  │        ├─ 📄Block.java
+│  │  │  │        ├─ 📄FrightFruit.java
+│  │  │  │        ├─ 📄GamePanel.java
+│  │  │  │        ├─ 📄Ghost.java
 │  │  │  │        ├─ 📄PacMan.class
 │  │  │  │        └─ 📄PacMan.java
 │  │  │  └─ 📁resources
+│  │  │     ├─ 📄FrightFruit.png
+│  │  │     ├─ 📄FrontCover.png
 │  │  │     ├─ 📄Ghost1.gif
 │  │  │     ├─ 📄Ghost2.gif
 │  │  │     ├─ 📄GhostScared1.gif
@@ -34,7 +42,14 @@ PacMan
 │  │  ├─ 📁classes
 │  │  │  ├─ 📁game
 │  │  │  │  └─ 📁utils
+│  │  │  │     ├─ 📄App.class
+│  │  │  │     ├─ 📄Block.class
+│  │  │  │     ├─ 📄FrightFruit.class
+│  │  │  │     ├─ 📄GamePanel.class
+│  │  │  │     ├─ 📄Ghost.class
 │  │  │  │     └─ 📄PacMan.class
+│  │  │  ├─ 📄FrightFruit.png
+│  │  │  ├─ 📄FrontCover.png
 │  │  │  ├─ 📄Ghost1.gif
 │  │  │  ├─ 📄Ghost2.gif
 │  │  │  ├─ 📄GhostScared1.gif
