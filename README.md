@@ -14,6 +14,7 @@ PacMan
 │  │  │  │        ├─ 📄FrightFruit.java
 │  │  │  │        ├─ 📄GamePanel.java
 │  │  │  │        ├─ 📄Ghost.java
+│  │  │  │        ├─ 📄Level.java
 │  │  │  │        ├─ 📄PacMan.class
 │  │  │  │        └─ 📄PacMan.java
 │  │  │  └─ 📁resources
@@ -47,6 +48,7 @@ PacMan
 │  │  │  │     ├─ 📄FrightFruit.class
 │  │  │  │     ├─ 📄GamePanel.class
 │  │  │  │     ├─ 📄Ghost.class
+│  │  │  │     ├─ 📄Level.class
 │  │  │  │     └─ 📄PacMan.class
 │  │  │  ├─ 📄FrightFruit.png
 │  │  │  ├─ 📄FrontCover.png
