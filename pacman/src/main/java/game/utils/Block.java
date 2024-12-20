@@ -19,7 +19,7 @@ public class Block {
 
     protected int currentAnimationFrame = 0;
     public static final int tileSize = 32;
-    protected int VELOCITY = tileSize / 8;
+    protected int VELOCITY;
 
     Block(Image image, int x, int y, int width, int height) {
         this.image = image;
@@ -29,35 +29,6 @@ public class Block {
         this.height = height;
         this.startX = x;
         this.startY = y;
-    }
-
-    public void updateDirection(int direction, HashSet<Block> walls) {
-        int prevDirection = this.direction;
-        this.direction = direction;
-        updateVelocity();
-
-        // 计算新的位置
-        int newX = this.x + this.velocityX;
-        int newY = this.y + this.velocityY;
-
-        // 如果没有碰撞，更新位置
-        boolean canMove = true;
-        for (Block wall : walls) {
-            if (collision(new Block(null, newX, newY, this.width, this.height), wall)) {
-                canMove = false;
-                break;
-            }
-        }
-
-        // 如果没有碰撞，更新位置
-        if (canMove) {
-            this.x = newX;
-            this.y = newY;
-        } else {
-            // 如果有碰撞，恢复到原来的位置，方向不改变
-            this.direction = prevDirection;
-            updateVelocity();
-        }
     }
 
     public void updateVelocity() {
@@ -101,6 +72,13 @@ public class Block {
                 a.x + a.width > b.x &&
                 a.y < b.y + b.height &&
                 a.y + a.height > b.y;
+    }
+
+    public boolean collision(int xA, int xB, int yA, int yB, int widthA, int widthB, int heightA, int heightB) {
+        return xA < xB + widthB &&
+                xA + widthA > xB &&
+                yA < yB + heightB &&
+                yA + heightA > yB;
     }
 
     public void collideWithWall(Block wall) {

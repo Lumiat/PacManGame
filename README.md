@@ -73,3 +73,14 @@ PacMan
 │  └─ 📄pom.xml
 └─ 📄README.md
 ```
+
+## 代码思路
+
+将游戏进行抽象，完成架构规划
+考虑到游戏地图的设计很难在关卡难度上作为区分，不改变游戏的地图，关卡之间以 ghost 和 frightFruit 的数量以及 PacMan 和 Ghost 的移动速度来做区分
+
+```mermaid
+flowchart LR
+PacMan--- Level1 & Level2 & Level3
+Level1 --- GhostNumber & FrightFruitNumber & PacmanSpeed & GhostSpeed
+```

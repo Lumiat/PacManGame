@@ -6,6 +6,7 @@ import java.awt.*;
 // import java.util.Random;
 // import java.util.Random.*;
 // import javax.swing.*;
+import java.util.HashSet;
 
 public class PacMan extends Block {
     int score;
@@ -68,4 +69,33 @@ public class PacMan extends Block {
         invincibleTimer = 0;
     }
 
+    public void updateDirection(int direction, HashSet<Block> walls) {
+        int prevDirection = this.direction;
+        this.direction = direction;
+        updateVelocity();
+
+        // 计算新的位置
+        int newX = this.x + this.velocityX;
+        int newY = this.y + this.velocityY;
+
+        // 如果没有碰撞，更新位置
+        boolean canMove = true;
+        Block newPosition = new Block(null, newX, newY, tileSize, tileSize);
+        for (Block wall : walls) {
+            if (collision(newPosition, wall)) {
+                canMove = false;
+                break;
+            }
+        }
+
+        // 如果没有碰撞，更新位置
+        if (canMove) {
+            this.x = newX;
+            this.y = newY;
+        } else {
+            // 如果有碰撞，恢复到原来的位置，方向不改变
+            this.direction = prevDirection;
+            updateVelocity();
+        }
+    }
 }

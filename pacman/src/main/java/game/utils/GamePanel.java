@@ -88,9 +88,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         initializeLevels();
         loadLevel(level);
         loadMap();
-        for (Block ghost : ghosts) {
-            int newDirection = directions[random.nextInt(4)];
-            ghost.updateDirection(newDirection, walls);
+        for (Ghost ghost : ghosts) {
+            int newDirection = ghost.trackPacman(pacman, walls, rowCount, columnCount);
+            ghost.updateGhostDirection(newDirection, pacman, walls, rowCount, columnCount);
         }
 
         gameLoop = new Timer(50, this);// every 50 milliseconds repaint 20fps
@@ -100,7 +100,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         levels = new Level[2];
         levels[0] = new Level(3, 3, tileSize / 4, tileSize / 8);
         // at level two,reduce number of frightfruit,and increse ghost speed
-        levels[1] = new Level(5, 2, tileSize / 4, tileSize / 4);
+        levels[1] = new Level(5, 2, tileSize / 4, tileSize / 8);
     }
 
     private void loadLevel(int level) {
@@ -111,6 +111,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         generateFrightFruit(currentLevelData.frightFruitNumber, frightFruits);
         System.out.println("Level" + String.valueOf(level) + " ghosts: " + String.valueOf(currentLevelData.ghostNumber)
                 + "frightfruits: " + String.valueOf(currentLevelData.frightFruitNumber));
+        System.out.println("PacMan Speed: " + String.valueOf(currentLevelData.pacmanSpeed) + " Ghost Speed: "
+                + String.valueOf(currentLevelData.ghostSpeed));
     }
 
     public void loadImages() {
@@ -270,7 +272,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             g.setFont(new Font("Rockwell", Font.BOLD, 20));
             String hintMessage = "PRESS ENTER TO PLAY >>>";
             g.drawString(hintMessage, tileSize * 4 + 8, 310);
-        } else if (gameOver) {
+        } else if (gameOver && !gameEnded) {
             // g.fillRect(tileSize * 5, tileSize * 9, tileSize * 8, tileSize * 5);
             g.setFont(new Font("Rockwell", Font.BOLD, 45));
             String message = levelPassed ? "LEVEL PASSED" : "GAME    OVER";
@@ -282,6 +284,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                     : "        PRESS ENTER TO RESTART >>>";
             g.drawString(hintMessage, tileSize * 2 + 10, 310);
             g.drawString("SCORE: " + String.valueOf(pacman.score), tileSize * 7, tileSize * 12);
+        } else if (gameEnded) {
+            g.setFont(new Font("Rockwell", Font.BOLD, 45));
+            String congratulation = "CONGRATULATIONS!";
+            g.drawString(congratulation, tileSize, tileSize * 6);
+            String operationHint = "     PRESS ENTER TO PLAY AGAIN >>>";
+            g.setFont(new Font("Rockwell", Font.BOLD, 20));
+            g.drawString(operationHint, tileSize * 2 + 10, tileSize * 10 - 10);
         }
 
     }
@@ -310,8 +319,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     public void generateGhost(int num, HashSet<Ghost> ghosts, int velocity) {
         int counter = 0;
         while (counter < num) {
-            int x = random.nextInt(columnCount);
-            int y = random.nextInt(rowCount);
+            int x = random.nextInt(columnCount - 5) + 5;
+            int y = random.nextInt(rowCount - 5) + 5;
             if (tileMap[y][x] != 'x' && tileMap[y][x] != 'p' && tileMap[y][x] != 'g' && tileMap[y][x] != 'f') {
                 counter++;
                 tileMap[y][x] = 'g';
@@ -340,14 +349,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     public void nextLevel() {
         level++;
-        if (level > levels.length) {
-            gameEnded = true;
-            System.out.println(" All levels completed.");
-        } else {
-            // load next level
-            loadLevel(level);
-            levelPassed = false;
-        }
+
+        // load next level
+        loadLevel(level);
+        levelPassed = false;
+
     }
 
     public void checkLevelCompletion() {
@@ -356,6 +362,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             gameOver = true;
             levelPassed = true;
             // nextLevel();
+            if (level == levels.length)
+                gameEnded = true;
         }
     }
 
@@ -391,7 +399,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         Ghost exterminatedGhost = null;
         for (Ghost ghost : ghosts) {
             ghost.move(); // Ghost moves
-            ghost.collideWithWall(walls); // Check collision with walls
+            ghost.trackPacman(pacman, walls, rowCount, columnCount);
+            ghost.collideWithWall(pacman, walls, rowCount, columnCount);// Check
+            // collision with walls
             if (ghostFrightening) {
                 if (pacman.exterminateGhost(ghost)) {
                     exterminatedGhost = ghost;
@@ -414,6 +424,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         // TODO Auto-generated method stub
         // move then redraw again
         checkLevelCompletion();
+        if (gameOver) {
+            gameLoop.stop();
+
+        }
         updatePanel();
         currentFrame++;
 
@@ -455,9 +469,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 pacman.isInvincible = false;
             }
         }
-        if (gameOver) {
-            gameLoop.stop();
-        }
+
     }
 
     // won't use it
@@ -482,6 +494,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         if (gameOver && e.getKeyCode() == KeyEvent.VK_ENTER) {
             if (levelPassed) {
+
+                if (gameEnded) {
+                    gameEnded = false;
+                    level = 0;
+                }
                 nextLevel();
             }
             ghosts.clear();
@@ -493,11 +510,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             pacman.resetPositions();
             gameOver = false;
 
-            for (Block ghost : ghosts) {
-                int newDirection = directions[random.nextInt(4)];
-                ghost.updateDirection(newDirection, walls);
+            for (Ghost ghost : ghosts) {
+                int newDirection = ghost.trackPacman(pacman, walls, rowCount, columnCount);
+                ghost.updateGhostDirection(newDirection, pacman, walls, rowCount, columnCount);
             }
             gameLoop.start();
+        }
+
+        if (gameEnded && e.getKeyCode() == KeyEvent.VK_ENTER) {
+            level = 1;// restart the game
+
         }
 
         if (e.getKeyCode() == KeyEvent.VK_UP) {
