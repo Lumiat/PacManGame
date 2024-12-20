@@ -106,6 +106,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private void loadLevel(int level) {
         if (level < 1 || level > levels.length)
             return; // in case level does not exist
+        resetMap();
+        ghosts.clear();
+        frightFruits.clear();
         Level currentLevelData = levels[level - 1];
         generateGhost(currentLevelData.ghostNumber, ghosts, currentLevelData.ghostSpeed);
         generateFrightFruit(currentLevelData.frightFruitNumber, frightFruits);
@@ -165,18 +168,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     }
 
     public void loadMap() {
-        // if game is just over, then clear all the ghosts in the tileMap
-        if (gameOver) {
-            for (Ghost ghost : ghosts) {
-                tileMap[ghost.startY / tileSize][ghost.startX / tileSize] = 'b';
-                System.out.println("Deleted ghost");
-            }
-            for (FrightFruit frightFruit : frightFruits) {
-                tileMap[frightFruit.startY / tileSize][frightFruit.startX / tileSize] = 'b';
-                System.out.println("Deleted frightfruit");
-            }
-        }
-
         for (int row = 0; row < tileMap.length; row++) {
             for (int col = 0; col < tileMap.length; col++) {
                 int x = col * tileSize;
@@ -199,7 +190,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                         Block beanG = new Block(null, x + 14, y + 14, 4, 4);
                         food.add(beanG);
                         break;
-
+                    case 'f':
+                        Block beanF = new Block(null, x + 14, y + 14, 4, 4);
+                        food.add(beanF);
+                        break;
                 }
             }
         }
@@ -349,11 +343,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     public void nextLevel() {
         level++;
-
-        // load next level
-        loadLevel(level);
         levelPassed = false;
-
     }
 
     public void checkLevelCompletion() {
@@ -365,6 +355,20 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             if (level == levels.length)
                 gameEnded = true;
         }
+    }
+
+    public void resetMap() {
+        // if game is just over, then clear all the ghosts in the tileMap
+
+        for (Ghost ghost : ghosts) {
+            tileMap[ghost.startY / tileSize][ghost.startX / tileSize] = 'b';
+            System.out.println("Deleted ghost");
+        }
+        for (FrightFruit frightFruit : frightFruits) {
+            tileMap[frightFruit.startY / tileSize][frightFruit.startX / tileSize] = 'b';
+            System.out.println("Deleted frightfruit");
+        }
+
     }
 
     public void updatePanel() {
@@ -494,17 +498,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         if (gameOver && e.getKeyCode() == KeyEvent.VK_ENTER) {
             if (levelPassed) {
-
                 if (gameEnded) {
                     gameEnded = false;
                     level = 0;
                 }
                 nextLevel();
             }
-            ghosts.clear();
-            frightFruits.clear();
-            generateGhost(levels[level - 1].ghostNumber, ghosts, levels[level - 1].ghostSpeed);
-            generateFrightFruit(levels[level - 1].frightFruitNumber, frightFruits);
+            loadLevel(level);
             loadMap();
 
             pacman.resetPositions();
