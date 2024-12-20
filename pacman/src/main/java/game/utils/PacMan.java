@@ -16,11 +16,13 @@ public class PacMan extends Block {
     int flashFrame = 0;
     final int FLASH_INTERVAL = 2;
     int animationSpeed = 5;
+    long frighteningStartTime = 0; // 记录吃到 frightfruit 的时间
 
-    PacMan(Image image, int x, int y, int width, int height) {
+    PacMan(Image image, int x, int y, int width, int height, int velocity) {
         super(image, x, y, width, height);
         lives = 3;
         score = 0;
+        VELOCITY = velocity;
     }
 
     public boolean eatFood(Block food) {
@@ -34,6 +36,7 @@ public class PacMan extends Block {
     public boolean eatFrightFruit(FrightFruit frightFruit) {
         if (collision(this, frightFruit)) {
             System.out.println("Ghost Frightening Mode activated!");
+            frighteningStartTime = System.currentTimeMillis();
             return true;
         }
         return false;

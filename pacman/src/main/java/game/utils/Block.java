@@ -107,10 +107,12 @@ public class Block {
         if (collision(this, wall)) {
             x -= velocityX;
             y -= velocityY;
-            System.out.println("happend at x:" + this.x + " y:" + this.y + "block attribute: height" + this.height
-                    + ",width" + this.width);
-            System.out.println("wall x: " + wall.x + " wall y: " + wall.y + "block attribute: height" + wall.height
-                    + ",width" + wall.width);
+            // System.out.println("happend at x:" + this.x + " y:" + this.y + "block
+            // attribute: height" + this.height
+            // + ",width" + this.width);
+            // System.out.println("wall x: " + wall.x + " wall y: " + wall.y + "block
+            // attribute: height" + wall.height
+            // + ",width" + wall.width);
         }
     }
 

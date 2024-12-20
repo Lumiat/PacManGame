@@ -27,18 +27,23 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     // game related variables
     private Timer gameLoop;
     private int[] directions = { 0, 1, 2, 3 };// move directions , 0--U, 1--D, 2--L, 3--R
+    private Level[] levels;
 
     // Game State Variables
     private boolean gameStarted = false;
     private boolean gameOver = false;
+    private boolean gameEnded = false;
+    private boolean levelPassed = false;
     private boolean ghostFrightening = false;
     private final static int FRIGHTENED_INTERVAL = 3000;// 3000 milliseconds
     private int currentFrame = 0;
+    private int level = 1;
 
+    // utilities variables
     private Color wallColor = new Color(0x1fbbf7, false);
     private Color fontColor = new Color(0x5774e4, false);
 
-    // int frameCount = 4;// 4 directions
+    // animation sets
     private Image[] pacManFrames = new Image[4 * 4];
     private Image[] ghostFrames = new Image[2];
     private Image[] ghostFrightenedFrames = new Image[2];
@@ -72,6 +77,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         setBackground(Color.BLACK);
         addKeyListener(this);
         setFocusable(true);
+        level = 1;
         // load images
         loadImages();
         // gameStarted = true;
@@ -79,8 +85,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         food = new HashSet<Block>();
         ghosts = new HashSet<Ghost>();
         frightFruits = new HashSet<FrightFruit>();
-        generateGhost('g', 5, ghosts);
-        generateFrightFruit('f', 3, frightFruits);
+        initializeLevels();
+        loadLevel(level);
         loadMap();
         for (Block ghost : ghosts) {
             int newDirection = directions[random.nextInt(4)];
@@ -88,7 +94,23 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
 
         gameLoop = new Timer(50, this);// every 50 milliseconds repaint 20fps
+    }
 
+    private void initializeLevels() {
+        levels = new Level[2];
+        levels[0] = new Level(3, 3, tileSize / 4, tileSize / 8);
+        // at level two,reduce number of frightfruit,and increse ghost speed
+        levels[1] = new Level(5, 2, tileSize / 4, tileSize / 4);
+    }
+
+    private void loadLevel(int level) {
+        if (level < 1 || level > levels.length)
+            return; // in case level does not exist
+        Level currentLevelData = levels[level - 1];
+        generateGhost(currentLevelData.ghostNumber, ghosts, currentLevelData.ghostSpeed);
+        generateFrightFruit(currentLevelData.frightFruitNumber, frightFruits);
+        System.out.println("Level" + String.valueOf(level) + " ghosts: " + String.valueOf(currentLevelData.ghostNumber)
+                + "frightfruits: " + String.valueOf(currentLevelData.frightFruitNumber));
     }
 
     public void loadImages() {
@@ -168,21 +190,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                         Block bean = new Block(null, x + 14, y + 14, 4, 4);
                         food.add(bean);
                         break;
-                    // 添加FrightFruit
-                    // case 'f':
-                    // FrightFruit frightFruit = new FrightFruit(FrightFruit, x, y, tileSize,
-                    // tileSize);
-                    // frightFruits.add(frightFruit);
-                    // break;
-                    // case 'g':
-                    // Ghost ghost = new Ghost(ghostFrames[0], x, y, tileSize, tileSize);
-                    // ghosts.add(ghost);
-                    // Block beanG = new PacMan(null, x + 14, y + 14, 4, 4);
-                    // food.add(beanG);
-                    // break;
                     case 'p':
-                        pacman = new PacMan(pacManFrames[12], x, y, tileSize, tileSize);
+                        pacman = new PacMan(pacManFrames[12], x, y, tileSize, tileSize, levels[level - 1].pacmanSpeed);
                         break;
+                    case 'g':
+                        Block beanG = new Block(null, x + 14, y + 14, 4, 4);
+                        food.add(beanG);
+                        break;
+
                 }
             }
         }
@@ -192,19 +207,17 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         super.paintComponent(g);
         if (gameStarted) {
             drawElements(g);
-            drawLives(g);
+            drawInformation(g);
             if (ghostFrightening) {
                 drawFrightenedHint(g);
             }
         }
         drawMap(g);
-        if (!gameStarted) {
-            drawStartHintBox(g);
-        }
+        if (!gameStarted || gameOver)
+            drawMessageBox(g);
     }
 
     public void drawElements(Graphics g) {
-
         // 绘制pacman
         if (!pacman.isInvincible || pacman.flashFrame < pacman.FLASH_INTERVAL / 2)
             g.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height, null);
@@ -219,11 +232,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         for (Ghost ghost : ghosts) {
             g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
         }
-        // display score
-        g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.setColor(fontColor);
 
-        g.drawString(" Score: " + String.valueOf(pacman.score), tileSize * 13, tileSize * 17 - 10);
     }
 
     public void drawMap(Graphics g) {
@@ -248,24 +257,43 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    public void drawStartHintBox(Graphics g) {
+    public void drawMessageBox(Graphics g) {
         Graphics2D g2d = (Graphics2D) g.create();
-        int scaledWidth = 500;
-        int scaledHeight = 100;
-        g2d.drawImage(frontCover, 22, 200, scaledWidth, scaledHeight, null);
-
+        int scaledWidth = tileSize * 11;
+        int scaledHeight = 80;// tileSize * 2.5
+        g2d.drawImage(frontCover, tileSize * 3, 200, scaledWidth, scaledHeight, null);
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Rockwell", Font.BOLD, 20));
-        String hintMessage = "PRESS ENTER TO PLAY >>>";
-        g.drawString(hintMessage, 145, 330);
+        if (!gameStarted) {
+            g.setFont(new Font("Rockwell", Font.BOLD, 20));
+            String hintMessage = "PRESS ENTER TO PLAY >>>";
+            g.drawString(hintMessage, tileSize * 4 + 8, 310);
+        } else if (gameOver) {
+            // g.fillRect(tileSize * 5, tileSize * 9, tileSize * 8, tileSize * 5);
+            g.setFont(new Font("Rockwell", Font.BOLD, 45));
+            String message = levelPassed ? "LEVEL PASSED" : "GAME    OVER";
+            String subMessage = levelPassed ? "        PASSED LEVEL " : "FAILED TO PASS LEVEL ";
+            g.drawString(message, tileSize * 3 + 16, tileSize * 6);
+            g.setFont(new Font("Rockwell", Font.BOLD, 20));
+            g.drawString(subMessage + String.valueOf(level), tileSize * 5 - 10, tileSize * 11 - 10);
+            String hintMessage = levelPassed ? "PRESS ENTER TO GOTO NEXT LEVEL >>>"
+                    : "        PRESS ENTER TO RESTART >>>";
+            g.drawString(hintMessage, tileSize * 2 + 10, 310);
+            g.drawString("SCORE: " + String.valueOf(pacman.score), tileSize * 7, tileSize * 12);
+        }
+
     }
 
-    // draw the lives of pacman
-    public void drawLives(Graphics g) {
+    public void drawInformation(Graphics g) {
+        // display level
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.setColor(fontColor);
+        g.drawString("Level " + String.valueOf(level), tileSize, tileSize - 10);
+        // draw the lives of pacman
         for (int i = 1; i <= pacman.lives; i++) {
             g.drawImage(pacManFrames[10], tileSize * i, tileSize * 16 + 5, null);
         }
-
+        // display score
+        g.drawString(" Score: " + String.valueOf(pacman.score), tileSize * 13, tileSize * 17 - 10);
     }
 
     public void drawFrightenedHint(Graphics g) {
@@ -273,38 +301,58 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 14));
         String frightenedHint = "GHOST FRIGHTENED! TIME REMAIN: ";
-        g.drawString(frightenedHint + String.valueOf(remainTime) + " s", 120, tileSize - 10);
+        g.drawString(frightenedHint + String.valueOf(remainTime) + " s", 140, tileSize - 10);
     }
 
-    public void generateGhost(char componentType, int num, HashSet<Ghost> ghosts) {
+    public void generateGhost(int num, HashSet<Ghost> ghosts, int velocity) {
         int counter = 0;
         while (counter < num) {
             int x = random.nextInt(columnCount);
             int y = random.nextInt(rowCount);
             if (tileMap[y][x] != 'x' && tileMap[y][x] != 'p' && tileMap[y][x] != 'g' && tileMap[y][x] != 'f') {
                 counter++;
-                tileMap[y][x] = componentType;
+                tileMap[y][x] = 'g';
                 System.out.println("Create componnet at tileMap[" + y + "][" + x + ']');
-                Ghost ghost = new Ghost(ghostFrames[0], x * tileSize, y * tileSize, tileSize, tileSize);
+                Ghost ghost = new Ghost(ghostFrames[0], x * tileSize, y * tileSize, tileSize, tileSize, velocity);
                 ghosts.add(ghost);
             }
         }
     }
 
-    public void generateFrightFruit(char componentType, int num, HashSet<FrightFruit> frightFruits) {
+    public void generateFrightFruit(int num, HashSet<FrightFruit> frightFruits) {
         int counter = 0;
         while (counter < num) {
             int x = random.nextInt(17);
             int y = random.nextInt(17);
             if (tileMap[y][x] != 'x' && tileMap[y][x] != 'p' && tileMap[y][x] != 'g' && tileMap[y][x] != 'f') {
                 counter++;
-                tileMap[y][x] = componentType;
+                tileMap[y][x] = 'f';
                 System.out.println("Create componnet at tileMap[" + y + "][" + x + ']');
                 FrightFruit frightFruit = new FrightFruit(FrightFruit, x * tileSize, y * tileSize, tileSize, tileSize);
                 frightFruits.add(frightFruit);
             }
         }
 
+    }
+
+    public void nextLevel() {
+        level++;
+        if (level > levels.length) {
+            gameEnded = true;
+            System.out.println(" All levels completed.");
+        } else {
+            // load next level
+            loadLevel(level);
+        }
+    }
+
+    public void checkLevelCompletion() {
+        if (ghosts.isEmpty()) {
+            gameLoop.stop();
+            gameOver = true;
+            levelPassed = true;
+            nextLevel();
+        }
     }
 
     public void updatePanel() {
@@ -333,7 +381,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         frightFruits.remove(frightFruitEaten);
         // if frightFruit all eaten, randomly generate a new one
         if (frightFruits.isEmpty()) {
-            generateFrightFruit('f', 1, frightFruits);
+            generateFrightFruit(1, frightFruits);
         }
 
         Ghost exterminatedGhost = null;
@@ -354,12 +402,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
         }
         ghosts.remove(exterminatedGhost);
+
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
         // move then redraw again
+        checkLevelCompletion();
         updatePanel();
         currentFrame++;
 
@@ -403,7 +453,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
         if (gameOver) {
             gameLoop.stop();
-
         }
     }
 
@@ -430,8 +479,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         if (gameOver && e.getKeyCode() == KeyEvent.VK_ENTER) {
             ghosts.clear();
             frightFruits.clear();
-            generateGhost('g', 5, ghosts);
-            generateFrightFruit('f', 5, frightFruits);
+            generateGhost(levels[level - 1].ghostNumber, ghosts, levels[level - 1].ghostSpeed);
+            generateFrightFruit(levels[level - 1].frightFruitNumber, frightFruits);
             loadMap();
 
             pacman.resetPositions();

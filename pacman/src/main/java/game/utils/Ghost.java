@@ -8,8 +8,9 @@ public class Ghost extends Block {
     private int directions[] = { 0, 1, 2, 3 };
     Random random = new Random();
 
-    Ghost(Image image, int x, int y, int width, int height) {
+    Ghost(Image image, int x, int y, int width, int height, int velocity) {
         super(image, x, y, width, height);
+        VELOCITY = velocity;
     }
 
     // input the walls set
