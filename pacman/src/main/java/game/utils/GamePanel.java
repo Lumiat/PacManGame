@@ -40,7 +40,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private int level = 1;
 
     // utilities variables
-    private Color wallColor = new Color(0x1fbbf7, false);
+    private Color wallColorNormal = new Color(0x1fbbf7, false);
+    private Color wallColorFrightened = new Color(0xb01fdf, false);
     private Color fontColor = new Color(0x5774e4, false);
 
     // animation sets
@@ -80,7 +81,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         level = 1;
         // load images
         loadImages();
-        // gameStarted = true;
         walls = new HashSet<Block>();
         food = new HashSet<Block>();
         ghosts = new HashSet<Ghost>();
@@ -236,7 +236,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     }
 
     public void drawMap(Graphics g) {
-        g.setColor(wallColor);
+        if (ghostFrightening)
+            g.setColor(wallColorFrightened);
+        else
+            g.setColor(wallColorNormal);
         for (Block wall : walls) {
             int row = wall.y / tileSize;
             // System.out.printf("row = %d\n", row);
@@ -343,6 +346,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         } else {
             // load next level
             loadLevel(level);
+            levelPassed = false;
         }
     }
 
@@ -351,7 +355,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             gameLoop.stop();
             gameOver = true;
             levelPassed = true;
-            nextLevel();
+            // nextLevel();
         }
     }
 
@@ -477,6 +481,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
 
         if (gameOver && e.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (levelPassed) {
+                nextLevel();
+            }
             ghosts.clear();
             frightFruits.clear();
             generateGhost(levels[level - 1].ghostNumber, ghosts, levels[level - 1].ghostSpeed);
