@@ -1,7 +1,6 @@
 package game.utils;
 
 import javax.swing.*;
-import java.util.concurrent.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.util.HashSet;
@@ -26,7 +25,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     // game related variables
     private Timer gameLoop;
-    private int[] directions = { 0, 1, 2, 3 };// move directions , 0--U, 1--D, 2--L, 3--R
     private Level[] levels;
 
     // Game State Variables
