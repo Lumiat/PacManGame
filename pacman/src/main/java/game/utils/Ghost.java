@@ -82,9 +82,6 @@ public class Ghost extends Block {
 
         // 返回最优方向（鬼应该朝哪个方向走）
         if (bestDirection != -1) {
-            // System.out.println("Ghost at x=" + String.valueOf(ghostX) + ", y=" +
-            // String.valueOf(ghostY)
-            // + "will go direction" + String.valueOf(directions[bestDirection]));
             return directions[bestDirection];
         } else
             return this.direction;
