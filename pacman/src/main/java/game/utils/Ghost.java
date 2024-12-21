@@ -35,13 +35,13 @@ public class Ghost extends Block {
         int directions[] = { 1, 0, 3, 2 };
         // 使用BFS计算Pacman到Ghost目标位置的最短路径
         int[][] dist = new int[rows][columns]; // 记录每个位置到pacman的最短距离
-        int[][] parent = new int[rows][columns]; // 记录路径的来源方向
-
+        // int[][] parent = new int[rows][columns]; // 记录路径的来源方向
+        int bestDirection = -1;
         // 初始化BFS的dist和parent
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
                 dist[i][j] = Integer.MAX_VALUE; // 默认距离为无穷大
-                parent[i][j] = -1; // 没有父节点
+                // parent[i][j] = -1; // 没有父节点
             }
         }
 
@@ -67,7 +67,7 @@ public class Ghost extends Block {
                 if (newX >= 0 && newX < rows && newY >= 0 && newY < columns && dist[newX][newY] == Integer.MAX_VALUE) {
                     if (!isWall(newX, newY, walls)) { // 如果没有墙壁阻挡
                         dist[newX][newY] = dist[current.x][current.y] + 1;
-                        parent[newX][newY] = i; // 记录路径方向
+                        bestDirection = i; // 记录路径方向
                         queue.add(new Point(newX, newY));
                         if (newX == ghostX && newY == ghostY) {
                             flag = true;
@@ -80,32 +80,11 @@ public class Ghost extends Block {
                 break;
         }
 
-        // // 寻找四个方向中，哪个方向最接近pacman的最短路径
-        int bestDirection = -1;
-        if (ghostX >= 0 && ghostX < 17 && ghostY >= 0 && ghostY < 17)
-            bestDirection = parent[ghostX][ghostY];
-        // int minDistance = Integer.MAX_VALUE;
-
-        // for (int i = 0; i < 4; i++) {
-        // // 计算鬼当前朝向的四个方向的目标位置
-        // int newX = (ghostX + dx[i]) / tileSize;
-        // int newY = (ghostY + dy[i]) / tileSize;
-
-        // // 计算该位置到pacman的最短路径
-        // if (newX >= 0 && newX < rows && newY >= 0 && newY < columns) {
-        // if (dist[newX][newY] < minDistance) {
-        // bestDirection = i;
-        // minDistance = dist[newX][newY];
-        // }
-        // }
-        // }
-        // // System.out.println("Ghost at x="+String.valueOf(ghostX)+MinDistance:" +
-        // // String.valueOf(minDistance));
-
         // 返回最优方向（鬼应该朝哪个方向走）
         if (bestDirection != -1) {
-            System.out.println("Ghost at x=" + String.valueOf(ghostX) + ", y=" + String.valueOf(ghostY)
-                    + "will go direction" + String.valueOf(directions[bestDirection]));
+            // System.out.println("Ghost at x=" + String.valueOf(ghostX) + ", y=" +
+            // String.valueOf(ghostY)
+            // + "will go direction" + String.valueOf(directions[bestDirection]));
             return directions[bestDirection];
         } else
             return this.direction;

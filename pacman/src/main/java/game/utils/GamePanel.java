@@ -266,6 +266,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             g.setFont(new Font("Rockwell", Font.BOLD, 20));
             String hintMessage = "PRESS ENTER TO PLAY >>>";
             g.drawString(hintMessage, tileSize * 4 + 8, 310);
+            String helpMessage = "PRESS ARROW KEYS TO CONTROL";
+            g.drawString(helpMessage, tileSize * 3, tileSize * 11);
         } else if (gameOver && !gameEnded) {
             // g.fillRect(tileSize * 5, tileSize * 9, tileSize * 8, tileSize * 5);
             g.setFont(new Font("Rockwell", Font.BOLD, 45));
@@ -280,7 +282,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             g.drawString("SCORE: " + String.valueOf(pacman.score), tileSize * 7, tileSize * 12);
         } else if (gameEnded) {
             g.setFont(new Font("Rockwell", Font.BOLD, 45));
-            String congratulation = "CONGRATULATIONS!";
+            String congratulation = "CONGRATULATIONS";
             g.drawString(congratulation, tileSize, tileSize * 6);
             String operationHint = "     PRESS ENTER TO PLAY AGAIN >>>";
             g.setFont(new Font("Rockwell", Font.BOLD, 20));
@@ -500,6 +502,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             if (levelPassed) {
                 if (gameEnded) {
                     gameEnded = false;
+                    gameStarted = false;
                     level = 0;
                 }
                 nextLevel();
