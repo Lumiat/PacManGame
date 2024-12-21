@@ -25,7 +25,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>game.utils.PacMan</mainClass>
+                            <mainClass>game.utils.App</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
