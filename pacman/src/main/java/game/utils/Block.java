@@ -1,7 +1,6 @@
 package game.utils;
 
 import java.awt.*;
-import java.util.HashSet;
 
 public class Block {
     protected int x;
@@ -72,13 +71,6 @@ public class Block {
                 a.x + a.width > b.x &&
                 a.y < b.y + b.height &&
                 a.y + a.height > b.y;
-    }
-
-    public boolean collision(int xA, int xB, int yA, int yB, int widthA, int widthB, int heightA, int heightB) {
-        return xA < xB + widthB &&
-                xA + widthA > xB &&
-                yA < yB + heightB &&
-                yA + heightA > yB;
     }
 
     public void collideWithWall(Block wall) {
